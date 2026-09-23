@@ -1,0 +1,220 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Todo — AI-Assisted Task Management</title>
+  <meta name="description" content="AI-powered task management. Break goals into actionable tasks with smart prioritization.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-wrapper">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon"><i class="ri-checkbox-circle-fill"></i></div>
+          <span>Smart<span class="logo-accent">Todo</span></span>
+        </div>
+        <button class="icon-btn sidebar-close" id="sidebar-close"><i class="ri-close-line"></i></button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-label">Overview</div>
+        <a class="nav-item active" data-filter="all" data-label="All Tasks">
+          <i class="ri-list-check-2"></i> All Tasks
+          <span class="count-badge" id="count-all">0</span>
+        </a>
+        <a class="nav-item" data-filter="active" data-label="Active Tasks">
+          <i class="ri-focus-3-line"></i> Active
+          <span class="count-badge" id="count-active">0</span>
+        </a>
+        <a class="nav-item" data-filter="completed" data-label="Completed">
+          <i class="ri-checkbox-circle-line"></i> Completed
+          <span class="count-badge green" id="count-completed">0</span>
+        </a>
+        <a class="nav-item" data-filter="overdue" data-label="Overdue">
+          <i class="ri-alarm-warning-line"></i> Overdue
+          <span class="count-badge red" id="count-overdue">0</span>
+        </a>
+
+        <div class="nav-label" style="margin-top:1.5rem">By Priority</div>
+        <a class="nav-item" data-filter="high" data-label="High Priority">
+          <span class="pdot high"></span> High
+          <span class="count-badge red" id="count-high">0</span>
+        </a>
+        <a class="nav-item" data-filter="medium" data-label="Medium Priority">
+          <span class="pdot medium"></span> Medium
+          <span class="count-badge yellow" id="count-medium">0</span>
+        </a>
+        <a class="nav-item" data-filter="low" data-label="Low Priority">
+          <span class="pdot low"></span> Low
+          <span class="count-badge green" id="count-low">0</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="ai-open-btn" id="ai-open-btn">
+          <i class="ri-sparkling-2-fill ai-spark"></i>
+          <div class="ai-btn-text">
+            <strong>AI Task Generator</strong>
+            <span>Turn goals into tasks</span>
+          </div>
+          <i class="ri-arrow-right-s-line"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+      <header class="top-header">
+        <div class="header-left">
+          <button class="hamburger icon-btn" id="hamburger"><i class="ri-menu-line"></i></button>
+          <h1 class="page-title" id="page-title">All Tasks</h1>
+        </div>
+        <div class="header-right">
+          <div class="search-wrapper">
+            <i class="ri-search-line search-icon"></i>
+            <input type="text" id="search-input" class="search-input" placeholder="Search tasks...">
+            <button class="clear-search" id="clear-search" title="Clear search"><i class="ri-close-line"></i></button>
+          </div>
+          <button class="btn-primary" id="add-task-btn">
+            <i class="ri-add-line"></i> Add Task
+          </button>
+        </div>
+      </header>
+
+      <div class="stats-bar">
+        <div class="stat-item">
+          <div class="stat-num" id="stat-total">0</div>
+          <div class="stat-lbl">Total</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num accent" id="stat-active">0</div>
+          <div class="stat-lbl">Active</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num success" id="stat-completed">0</div>
+          <div class="stat-lbl">Done</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num danger" id="stat-overdue">0</div>
+          <div class="stat-lbl">Overdue</div>
+        </div>
+        <div class="progress-section">
+          <div class="progress-labels">
+            <span>Completion</span><span id="progress-pct">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tasks-area">
+        <div id="tasks-container"></div>
+        <div class="empty-state hidden" id="empty-state">
+          <div class="empty-icon"><i class="ri-inbox-2-line"></i></div>
+          <h3>No tasks found</h3>
+          <p>Try a different filter or add a new task</p>
+          <button class="btn-primary" onclick="todo.openTaskModal()"><i class="ri-add-line"></i> Add Task</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Mobile FAB -->
+  <button class="fab" id="fab-add" title="Add task"><i class="ri-add-line"></i></button>
+
+  <!-- TASK MODAL -->
+  <div class="modal-overlay" id="task-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modal-title">Add New Task</h2>
+        <button class="icon-btn modal-close" id="modal-close"><i class="ri-close-line"></i></button>
+      </div>
+      <form class="modal-body" id="task-form" onsubmit="return false">
+        <div class="form-group">
+          <label class="form-label">Task Title <span class="req">*</span></label>
+          <input type="text" id="t-title" class="form-input" placeholder="What needs to be done?" maxlength="100" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description <span class="optional">(optional)</span></label>
+          <textarea id="t-desc" class="form-input form-textarea" placeholder="Add details..." rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Priority</label>
+            <select id="t-priority" class="form-input form-select">
+              <option value="high">🔴 High</option>
+              <option value="medium" selected>🟡 Medium</option>
+              <option value="low">🟢 Low</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Due Date</label>
+            <input type="date" id="t-due" class="form-input">
+          </div>
+        </div>
+      </form>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="task-cancel">Cancel</button>
+        <button class="btn-primary" id="task-submit"><i class="ri-save-line"></i> Save Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI MODAL -->
+  <div class="modal-overlay" id="ai-modal">
+    <div class="modal modal-lg">
+      <div class="modal-header ai-header">
+        <div class="ai-header-content">
+          <div class="ai-icon-lg"><i class="ri-sparkling-2-fill"></i></div>
+          <div>
+            <h2>AI Task Generator</h2>
+            <p>Describe your goal — AI breaks it into actionable tasks</p>
+          </div>
+        </div>
+        <button class="icon-btn modal-close" id="ai-modal-close"><i class="ri-close-line"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Your Goal</label>
+          <textarea id="ai-goal" class="form-input form-textarea" rows="3"
+            placeholder="e.g. Build and launch a personal portfolio website within 3 weeks..."></textarea>
+        </div>
+        <button class="btn-ai" id="ai-generate-btn">
+          <i class="ri-sparkling-line"></i> Generate Tasks
+        </button>
+
+        <div class="ai-loading hidden" id="ai-loading">
+          <div class="bounce-dots"><span></span><span></span><span></span></div>
+          <p>AI is analyzing your goal...</p>
+        </div>
+
+        <div class="ai-results hidden" id="ai-results">
+          <div class="ai-results-hdr">
+            <h3><i class="ri-sparkling-line"></i> Generated Tasks</h3>
+            <p>Select the tasks you want to add</p>
+          </div>
+          <div id="gen-list"></div>
+          <button class="btn-primary btn-full" id="add-selected-btn" disabled>
+            <i class="ri-add-line"></i> Add Tasks to List
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Mobile sidebar overlay -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
